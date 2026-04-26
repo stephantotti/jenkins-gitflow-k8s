@@ -1,0 +1,31 @@
+CRIAÇÃO DO CLUSTER
+
+Criar o Cluster através do arquivo de configuração "cluster-config.yaml"
+ - kind create cluster --config cluster-config.yaml
+ - kubectl get pods -A // Para testar a conexão com o cluster e ver se está tudo runnning
+
+* O kind inicia 3 containers que simulam os nodes no ambiente, e dentro desses nodes haverão pods com containers, ou seja, é o conceito de docker in docker.
+
+docker stop $(docker ps -q)
+  - Para parar os containers e não ficar consumindo recursos computacionais.
+
+docker start kind-control-plane kind-worker kind-worker2
+  - Inicia os containers parados 
+
+CONFIGURAÇÃO DO HOSTS
+
+docker ps 
+ - Lista os containers
+Escolhe o ID de um containers
+
+docker inspect "id do container"
+ - Acha o IPAdress // Ex: 172.18.0.3
+ - Escolhe um endereço IP nesse range para ser o Load Balancer // Ex: 172.18.0.50
+
+Cria o yaml do DaemonSet
+  - kubectl apply -f setup-hosts-daemonset.yaml 
+  - Configura o IP do load balancer no manifest 
+
+A idéia do DaemonSet é para ter um pod em cada node contendo um init container para fazer a configuração automatica dos hosts.
+
+Após subir o DaemonSet, use docker exec -it "id de um container" bash e de um cat no arquivo /etc/hosts pra ver se a configuração está correta!

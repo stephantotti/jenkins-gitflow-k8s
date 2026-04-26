@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: setup-hosts
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      name: setup-hosts
+  template:
+    metadata:
+      labels:
+        name: setup-hosts
+    spec:
+      initContainers:
+      - name: setup-hosts
+        image: busybox
+        command: # Essa sequencia de comandos é executada dentro do container para garantir que as entradas necessárias sejam adicionadas ao arquivo /etc/hosts do host. O comando grep verifica se a string "jenkins" já está presente no arquivo, e se não estiver, a linha com os mapeamentos de IP e nomes de host é adicionada.
+          - /bin/sh
+          - -c
+          - |
+            grep -q jenkins /tmp/etc/hosts || echo '172.18.0.50 argocd.localhost.com jenkins.localhost.com gitea.localhost.com sonarqube.localhost.com harbor.localhost.com' >> /tmp/etc/hosts
+        volumeMounts:
+        - name: etc
+          mountPath: /tmp/etc
+      containers:
+      - name: pause
+        image: registry.k8s.io/pause:3.9
+      volumes:
+      - name: etc
+        hostPath:
+          path: /etc
