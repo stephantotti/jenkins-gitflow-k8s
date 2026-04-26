@@ -1,4 +1,4 @@
-CRIAÇÃO DO CLUSTER
+***CRIAÇÃO DO CLUSTER***
 
 Criar o Cluster através do arquivo de configuração "cluster-config.yaml"
  - kind create cluster --config cluster-config.yaml
@@ -12,7 +12,7 @@ docker stop $(docker ps -q)
 docker start kind-control-plane kind-worker kind-worker2
   - Inicia os containers parados 
 
-CONFIGURAÇÃO DO HOSTS
+***CONFIGURAÇÃO DO HOSTS***
 
 docker ps 
  - Lista os containers
@@ -29,3 +29,51 @@ Cria o yaml do DaemonSet
 A idéia do DaemonSet é para ter um pod em cada node contendo um init container para fazer a configuração automatica dos hosts.
 
 Após subir o DaemonSet, use docker exec -it "id de um container" bash e de um cat no arquivo /etc/hosts pra ver se a configuração está correta!
+
+***INSTALAÇÃO DO METALLB*** Muito utilizado em ambientes On Premisses // é um add on para o kubernetes que permite que a gente tenha um endpoint do tipo LoadBalancer (endereço IP)
+
+* Necessário verificar se utiliza kube-proxy em IPVS mode, se sim, é preciso fazer uma configuração prévia antes.
+
+kubectl get cm -n kube-system kube-proxy -o yaml
+  - Procurar o parametro "mode"
+
+No meu caso estava IPTables, então não há necessidade de realizar a pré configuração.
+
+INSTALAÇÃO
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.15.3/config/manifests/metallb-native.yaml
+
+Necessário executar este comando para que se trave o terminal, até que todos os pods com a label --selector=app=metallb estejam com a condition de Ready, ou seja, o metallb esteja completamente instalado
+@kubectl wait --namespace metallb-system \
+	  --for=condition=ready pod \
+	  --selector=app=metallb \
+	  --timeout=300s
+
+***CONFIGURAÇÃO DO METALLB*** Encontrar a faixa de endereços IPs dentro da rede do cluster, para distribuir para os services do tipo Load Balancer.
+docker inspect kind | jq -r '.[].IPAM.Config[1].Subnet' // No meu caso, é o json path correto, pode ser que em outros caso devolva um IPV6 e seja necessário configurar 
+
+172.18.0.0/16
+
+*Após isso, configurar o metalLB em Layer 2 Configuration!
+
+***DEPLOY NGINX INGRESS CONTROLLER*** O Pod do nginx ingress controler vai estar exposto para a "internet/nossa máquina" via um service LoadBalancer
+
+Instalar helm
+  - sudo snap install helm --classic
+
+Instalar nginx ingress controller
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo update
+helm search repo nginx // Para procurar o chart instalado
+
+Criar o arquivo "values" do ingress-nginx
+helm template nginx ingress-nginx/ingress-nginx -f values/ingress-nginx/values.yaml // Pega as informações do seu nginx e joga no arquivo values
+
+helm upgrade --install --namespace ingress-nginx --create-namespace -f values/ingress-nginx/values.yaml ingress-nginx ingress-nginx/ingress-nginx // Realiza a instalação de fato
+
+Após isso será gerado um service do tipo LoadBalancer com o External IP que foi definido e é possível testar a conexão
+curl -Lvk 172.18.0.50
+
+Instalar o HelmFile
+  - Necessário baixar o binário no site oficial e realizar a instalação
+tar xvzf helmfile_1.4.4_linux_amd64.tar.gz 
+sudo chmod +x /usr/local/bin/helmfile

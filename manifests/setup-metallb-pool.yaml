@@ -1,0 +1,17 @@
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool # Onde se define a pool de IPs, o range!
+metadata:
+  name: homelab-pool
+  namespace: metallb-system
+spec:
+  addresses:
+  - 172.18.0.50-172.18.0.70
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement # Onde se define o tipo de anúncio, nesse caso L2, ou seja, camada 2, onde o MetalLB irá anunciar os IPs da pool para a rede local o tempo todo usando ARP (Address Resolution Protocol) para IPv4.
+metadata:
+  name: home-advertisement
+  namespace: metallb-system
+spec:
+  ipAddressPools: # Aqui se faz a referencia a pool de endereços IP que foi criada anteriormente, ou seja, a pool "homelab-pool".
+  - homelab-pool

@@ -1,7 +1,16 @@
 .DEFAULT_GOAL := create
 
+pre:
+	@kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.15.3/config/manifests/metallb-native.yaml
+	@kubectl wait --namespace metallb-system \
+	  --for=condition=ready pod \
+	  --selector=app=metallb \
+	  --timeout=300s
+	@kubectl apply -f manifests/
 create:
-	@kind create cluster --config cluster-config.yaml # O @ serve para criar o cluster usando o Kind com a configuração especificada sem jogar na tela a saída do comando. "echo Criando cluster"
+	@kind create cluster --config cluster-config.yaml
+
+up: create pre
 
 destroy:
 	@kind delete clusters kind
