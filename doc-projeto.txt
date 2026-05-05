@@ -170,3 +170,13 @@ Necessário clonar o repositório dentro do container tamb´me, da mesma forma.
 - multibranch-scan-webhook-trigger:1.0.11
 - basic-branch-build-strategies:317.v85b_331d6cc42
 - discord-notifier:264.v70060b_a_b_d300
+
+***FAZER A CONFIGURAÇÃO DA PIPELINE"
+- Criar o Jenkinsfile com a template e configurações corretas
+- Na criação da pipeline, selecionar a branch correta, escolher que o código está em um SCM, colocar o link do repositório remoto e a chave pública cadastrada no Git.
+- Testar a pipeline do jenkins clicando em "Build Now"
+
+***CONFIGURAÇÃO DO WEBHOOK*** // Mecanismo de comunicação entre sistemas onde um servidor envia automaticamente uma notificação HTTP para outro sistema no momento que um trigger acontece.
+- Criar uma multi-branch pipeline no jenkins
+- Escolher a opção scan by Webhook
+- Configurar o webhook e a URL, http://jenkins.jenkins.svc.cluster.local:8080/multibranch-webhook-trigger/invoke?token=restapi-flask (tem na documentação do plug in multibranch scan webhook trigger)
