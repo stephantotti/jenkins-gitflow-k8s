@@ -21,7 +21,12 @@ spec:
     - sleep
     args:
     - infinity
-    securityContext:
+  hostAliases:  
+  - ip: "127.0.0.1"
+    hostnames:
+    - "foo.local"
+    - "bar.local"
+  securityContext:
       # ubuntu runs as root by default, it is recommended or even mandatory in some environments (such as pod security admission "restricted") to run as a non-root user.
       runAsUser: 1000
 '''
