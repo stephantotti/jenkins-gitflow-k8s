@@ -181,3 +181,4 @@ Necessário clonar o repositório dentro do container tamb´me, da mesma forma.
 - Escolher a opção scan by Webhook
 - Configurar o webhook e a URL, http://jenkins.jenkins.svc.cluster.local:8080/multibranch-webhook-trigger/invoke?token=restapi-flask (tem na documentação do plug in multibranch scan webhook trigger)
 - Verificar os logs pra ver se o webhook funcionou // kubectl logs "nome do pod" -f -n jenkins
+- 
