@@ -96,7 +96,7 @@ controller:
   ## Disabled by default
   hostPort:
     # -- Enable 'hostPort' or not
-    enabled: false
+    enabled: true
     ports:
       # -- 'hostPort' http port
       http: 80
@@ -161,7 +161,7 @@ controller:
   # -- Allows customization of the configmap / nginx-configmap namespace; defaults to $(POD_NAMESPACE)
   configMapNamespace: ""
   tcp:
-    # -- Allows customization of the tcp-services-configmap; defaults to $(POD_NAMESPACE)
+    22: "gitea/gitea-ssh:22"
     configMapNamespace: ""
     # -- Annotations to be added to the tcp config configmap
     annotations: {}
@@ -296,7 +296,11 @@ controller:
   ## Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/
   ##
   nodeSelector:
-    kubernetes.io/os: linux
+    kubernetes.io/hostname: kind-control-plane
+  tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    operator: "Exists"
+    effect: "NoSchedule"
   ## Liveness and readiness probe values
   ## Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#container-probes
   ##

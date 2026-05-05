@@ -77,3 +77,96 @@ Instalar o HelmFile
   - Necessário baixar o binário no site oficial e realizar a instalação
 tar xvzf helmfile_1.4.4_linux_amd64.tar.gz 
 sudo chmod +x /usr/local/bin/helmfile
+
+***IMPORTANTE***
+
+EM TODOS OS VALUES HÁ CREDENCIAIS, NÃO COMITTAR PARA O REPOSITÓRIO REMOTO!!!
+
+Para todos os "values.yaml" criados, a configuração está no repositório do github de cada ferramenta
+Criar os values.yaml para cada ferramenta
+
+Configurar o HelmFile com as informações do chart do ***ingress-nginx***
+Todas as infos para preencher os parametros estão no comando abaixo
+helm upgrade --install --namespace ingress-nginx --create-namespace -f values/ingress-nginx/values.yaml ingress-nginx=nome da release ingress-nginx/ingress-nginx=repo/chart
+
+PARA TODAS AS FERRAMENTAS ABAIXO!
+Adicionar o ip do load balancer e as urls ao arquivo /etc/hosts/ ***Se for WSL não vai funcionar o ip do load balancer, será necessário utilizar 172.18.0.1 e adicionar no hosts do windows***
+Todas as configs abaixo estão na aula denominada "resumo" do curso
+
+***INSTALAR O JENKINS*** Ferramenta de CI 
+Configurar o HelmFile com as informações do chart do ***jenkins***
+Alterar o valor do Ingress para True no values.yaml do jenkins, para criar automaticamente um ingress no Cluster e expor o jenkins
+Após isso, também no values, alterar:
+ingressClassName: nginx
+hostName: jenkins.localhost.com
+kubectl get ingress -n jenkins // Para verificar as alterações efetuadas
+
+***INSTALAR O GITEA***
+Configurar o HelmFile com as informações do chart do ***jenkins***
+Alterar o valor do Ingress para True no values.yaml do gitea, para criar automaticamente um ingress no Cluster e expor o gitea
+Após isso, também no values, alterar:
+ingressClassName: nginx
+hostName: gitea.localhost.com
+kubectl get ingress -n gitea // Para verificar as alterações efetuadas
+
+curl -Lvk 172.18.0.50 -H "Host: jenkins.localhost.com" ou "gitea.localhost.com"
+testa se está tudo certo até o momento // Normal dar o erro 403!
+
+***INSTALAR O HARBOR*** Registry Free 
+Configurar o HelmFile com as informações do chart do ***harbor***
+Alterar o valor do Ingress para True no values.yaml do harbor, para criar automaticamente um ingress no Cluster e expor o harbor
+Alterar a externalUrl: harbor.localhost.com
+Após isso, também no values, alterar:
+ingressClassName: nginx
+Tls enable: false
+hostName: harbor.localhost.com
+kubectl get ingress -n harbor // Para verificar as alterações efetuadas
+
+***INSTALAR O SONARQUBE***
+Configurar o HelmFile com as informações do chart do ***sonarqube***
+Alterar o valor do Ingress para True no values.yaml do sonarqube, para criar automaticamente um ingress no Cluster e expor o sonarqube
+Após isso, também no values, alterar:
+ingressClassName: nginx
+hostName: sonarqube.localhost.com
+kubectl get ingress -n sonarqube // Para verificar as alterações efetuadas
+
+***INSTALAR O ARGOCD***
+Configurar o HelmFile com as informações do chart do ***argocd***
+Alterar o valor do Ingress para True no values.yaml do argocd, para criar automaticamente um ingress no Cluster e expor o argocd
+Após isso, também no values, alterar:
+ingressClassName: nginx
+hostName: argocd.localhost.com
+kubectl get ingress -n argocd // Para verificar as alterações efetuadas
+
+***INSTALAR O IMAGEPULLSECRET-PATCHER***
+Configurar o HelmFile com as informações do chart do ***imagepullsecret-patcher***
+Alterar o valor do secret para harbor-credentials
+* O pod não vai subir por que o secret configurado ainda não existe
+
+***COM TODOS OS SERVIÇOS UP***
+1 - Entrar no Gitea e criar uma nova organization (privada)
+2 - Criar o repositório abaixo da organização
+3 - Criar uma chave ssh
+  -  cd $HOME/.ssh // Lista as chaves existentes
+  -  ssh-keygen // cria a chave ssh // ***A CHAVE PRIVADA NUNCA SAI DA SUA MÁQUINA, ELA É USADA PARA CLONAR REPOSITÓRIOS, NO REPOSITÓRIO REMOTO SE USA A PÚBLICA!***
+  -  cat nome da chave pública criada
+  -  copiar e colar em setting > manage ssh keys > add ssh key
+
+4 - Criar um usuário de serviço e dar acesso a ele ao repositório (usuários de serviço usam ferramentas especificas pra eles, ex: jenkins)
+  - Site administration > identity & access > user accounts > create user accounts
+  - Criar um time de devops, adicionar o user criado como membro, e fazer conexão ssh (gerar uma chave nova pra ele), para poder clonar o repositório após expor a porta ssh 22
+
+5 - Expor o gitea via ssh // gitea é um SCM = Source Code Manager
+  - Alterar o values do ingress-nginx:
+tcp:
+    22: "gitea/gitea-ssh:22"
+
+Após isso, basta clonar o repositório e dar um ls pra ver se foi concluído o processo!
+Necessário clonar o repositório dentro do container tamb´me, da mesma forma.
+
+***INSTALAR OS PLUGINS DO JENKINS***
+*Recomendado alterar o parametro additionalPlugins no values.yaml do Jenkins (Necessário atualizar para não ficar deprecated)
+- pipeline-stage-view:2.41
+- multibranch-scan-webhook-trigger:1.0.11
+- basic-branch-build-strategies:317.v85b_331d6cc42
+- discord-notifier:264.v70060b_a_b_d300
